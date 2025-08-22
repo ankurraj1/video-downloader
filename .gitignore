@@ -36,3 +36,8 @@ Thumbs.db
 
 # Downloads folder (if you don't want to commit downloaded videos)
 downloads/
+
+# PyInstaller build files
+build/
+dist/
+*.spec

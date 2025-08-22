@@ -136,6 +136,14 @@ class VideoDownloader:
                 'progress_hooks': [self.progress_hook],
                 'quiet': True,
                 'no_warnings': True,
+                'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                'referer': 'https://www.youtube.com/',
+                'headers': {
+                    'Accept-Language': 'en-US,en;q=0.5',
+                },
+                'extract_flat': False,
+                'writethumbnail': False,
+                'writeinfojson': False,
             }
             
             if quality == "audio":

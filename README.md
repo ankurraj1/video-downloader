@@ -12,27 +12,39 @@ A simple desktop application for downloading videos using yt-dlp.
 
 ## Installation
 
-1. Install Python 3 and tkinter:
+1. Install Python 3 and required packages:
 ```bash
-sudo apt-get install python3 python3-tk
+sudo apt-get install python3 python3-tk python3-venv python3-pip python3-full
 ```
 
-2. Install dependencies:
+2. Create and activate virtual environment:
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+3. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
 ## Usage
 
-Run the application:
+1. Activate the virtual environment:
+```bash
+source venv/bin/activate
+```
+
+2. Run the application:
 ```bash
 python3 video_downloader.py
 ```
 
-1. Paste the video URL
-2. Select download location (default: ~/Downloads)
-3. Choose quality
-4. Click Download
+3. Using the app:
+   - Paste the video URL
+   - Select download location (default: ~/Downloads)
+   - Choose quality
+   - Click Download
 
 ## Requirements
 
