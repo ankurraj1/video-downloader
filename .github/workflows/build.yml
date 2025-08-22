@@ -1,0 +1,63 @@
+name: Build Executables
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  release:
+    types: [ published ]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux
+            executable-suffix: ""
+          - os: windows-latest
+            platform: windows
+            executable-suffix: ".exe"
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Install system dependencies (Ubuntu)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y python3-tk
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+
+    - name: Build executable
+      run: |
+        pyinstaller --onefile --windowed --name VideoDownloader${{ matrix.executable-suffix }} video_downloader.py
+
+    - name: Upload executable
+      uses: actions/upload-artifact@v3
+      with:
+        name: VideoDownloader-${{ matrix.platform }}
+        path: dist/VideoDownloader${{ matrix.executable-suffix }}
+
+    - name: Release executable (on release)
+      if: github.event_name == 'release'
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: dist/VideoDownloader${{ matrix.executable-suffix }}
+        asset_name: VideoDownloader-${{ matrix.platform }}${{ matrix.executable-suffix }}
+        asset_content_type: application/octet-stream
