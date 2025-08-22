@@ -46,7 +46,7 @@ jobs:
         pyinstaller --onefile --windowed --name VideoDownloader${{ matrix.executable-suffix }} video_downloader.py
 
     - name: Upload executable
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: VideoDownloader-${{ matrix.platform }}
         path: dist/VideoDownloader${{ matrix.executable-suffix }}
