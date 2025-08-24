@@ -120,9 +120,9 @@ class VideoDownloader:
             # Quality to format mapping
             format_map = {
                 "audio": ("bestaudio/best", {"postprocessors": [{'key': 'FFmpegExtractAudio', 'preferredcodec': 'mp3'}]}),
-                "best": ("best", {}),
-                "720": ("best[height<=720]", {}),
-                "480": ("best[height<=480]", {})
+                "best": ("bestvideo+bestaudio/best", {}),
+                "720": ("bestvideo[height<=720]+bestaudio/best[height<=720]", {}),
+                "480": ("bestvideo[height<=480]+bestaudio/best[height<=480]", {})
             }
             
             format_opt, extra_opts = format_map[quality]
