@@ -38,7 +38,7 @@ class VideoDownloader:
         quality_frame = ttk.Frame(main_frame)
         quality_frame.grid(row=5, column=0, columnspan=2, sticky=tk.W, pady=5)
         
-        for text, value in [("Best", "best"), ("720p", "720"), ("480p", "480"), ("Audio Only", "audio")]:
+        for text, value in [("Best", "best"), ("1080p", "1080"), ("720p", "720"), ("480p", "480"), ("Audio Only", "audio")]:
             ttk.Radiobutton(quality_frame, text=text, variable=self.quality_var, value=value).pack(side=tk.LEFT, padx=5)
         
         # Buttons
@@ -116,6 +116,7 @@ class VideoDownloader:
             formats = {
                 "audio": ("bestaudio/best", {"postprocessors": [{'key': 'FFmpegExtractAudio', 'preferredcodec': 'mp3'}]}),
                 "best": ("bestvideo+bestaudio/best", {}),
+                "1080": ("bestvideo[height<=1080]+bestaudio/best[height<=1080]", {}),
                 "720": ("bestvideo[height<=720]+bestaudio/best[height<=720]", {}),
                 "480": ("bestvideo[height<=480]+bestaudio/best[height<=480]", {})
             }
