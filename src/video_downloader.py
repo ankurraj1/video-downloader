@@ -109,6 +109,23 @@ class VideoDownloader:
             self.status_label.config(text="Download completed!", foreground="green")
             self.log_message("Download finished, processing...")
             
+    def get_unique_filename(self, base_path, title, quality_suffix, ext):
+        """Generate unique filename with numbering if file exists"""
+        filename = f"{title}{quality_suffix}.{ext}"
+        full_path = os.path.join(base_path, filename)
+        
+        if not os.path.exists(full_path):
+            return filename
+            
+        # File exists, add numbering
+        counter = 1
+        while True:
+            filename = f"{title}{quality_suffix}({counter}).{ext}"
+            full_path = os.path.join(base_path, filename)
+            if not os.path.exists(full_path):
+                return filename
+            counter += 1
+
     def download_video(self):
         url = self.url_entry.get().strip()
         if not url:
@@ -151,26 +168,47 @@ class VideoDownloader:
                 "audio": "_audio"
             }.get(quality, f"_{quality}")
             
-            ydl_opts = {
-                'format': format_opt,
-                'outtmpl': os.path.join(self.download_path, f'%(title)s{quality_suffix}.%(ext)s'),
-                'progress_hooks': [self.progress_hook],
-                'quiet': True,
-                'no_warnings': True,
-                **extra_opts
-            }
-                
             hdr_status = "SDR (avoid HDR)" if avoid_hdr else "Best available (may include HDR)"
             self.log_message(f"Starting download: {url} (Quality: {quality}, {hdr_status})")
             
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            # Get video info first to determine filename
+            with yt_dlp.YoutubeDL({'quiet': True}) as ydl:
                 info = ydl.extract_info(url, download=False)
                 title = info.get('title', 'Unknown')
+                
+                # Clean title for filename
+                import re
+                clean_title = re.sub(r'[<>:"/\\|?*]', '_', title)
+                
+                # Determine extension based on quality
+                if quality == 'audio':
+                    ext = 'mp3'
+                else:
+                    ext = info.get('ext', 'mp4')
+                
+                # Get unique filename
+                unique_filename = self.get_unique_filename(self.download_path, clean_title, quality_suffix, ext)
+                
                 self.log_message(f"Title: {title}")
+                self.log_message(f"Filename: {unique_filename}")
+            
+            # Update yt-dlp options with unique filename
+            ydl_opts = {
+                'format': format_opt,
+                'outtmpl': os.path.join(self.download_path, unique_filename),
+                'progress_hooks': [self.progress_hook],
+                'quiet': True,
+                'no_warnings': True,
+                'nooverwrites': False,  # Allow re-download
+                **extra_opts
+            }
+                
+            # Download with unique filename
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 ydl.download([url])
                 
             self.log_message("Download completed successfully!")
-            messagebox.showinfo("Success", f"Video downloaded to: {self.download_path}")
+            messagebox.showinfo("Success", f"Video downloaded as: {unique_filename}")
             
         except Exception as e:
             self.status_label.config(text="Download failed!", foreground="red")
