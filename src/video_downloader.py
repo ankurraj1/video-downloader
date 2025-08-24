@@ -41,6 +41,12 @@ class VideoDownloader:
         for text, value in [("Best", "best"), ("1080p", "1080"), ("720p", "720"), ("480p", "480"), ("Audio Only", "audio")]:
             ttk.Radiobutton(quality_frame, text=text, variable=self.quality_var, value=value).pack(side=tk.LEFT, padx=5)
         
+        # HDR option
+        self.avoid_hdr_var = tk.BooleanVar(value=True)
+        hdr_checkbox = ttk.Checkbutton(main_frame, text="Avoid HDR (recommended for standard displays)", 
+                                       variable=self.avoid_hdr_var)
+        hdr_checkbox.grid(row=5, column=1, sticky=tk.W, padx=(20, 0), pady=5)
+        
         # Buttons
         button_frame = ttk.Frame(main_frame)
         button_frame.grid(row=6, column=0, columnspan=2, pady=20)
@@ -111,15 +117,28 @@ class VideoDownloader:
             
         try:
             quality = self.quality_var.get()
+            avoid_hdr = self.avoid_hdr_var.get()
             
-            # Format mapping
-            formats = {
-                "audio": ("bestaudio/best", {"postprocessors": [{'key': 'FFmpegExtractAudio', 'preferredcodec': 'mp3'}]}),
-                "best": ("bestvideo+bestaudio/best", {}),
-                "1080": ("bestvideo[height<=1080]+bestaudio/best[height<=1080]", {}),
-                "720": ("bestvideo[height<=720]+bestaudio/best[height<=720]", {}),
-                "480": ("bestvideo[height<=480]+bestaudio/best[height<=480]", {})
-            }
+            # HDR filter - excludes HDR codecs that cause brightness issues
+            hdr_filter = "[vcodec!*=av01][vcodec!*=vp9.2]" if avoid_hdr else ""
+            
+            # Format mapping with HDR consideration
+            if avoid_hdr:
+                formats = {
+                    "audio": ("bestaudio/best", {"postprocessors": [{'key': 'FFmpegExtractAudio', 'preferredcodec': 'mp3'}]}),
+                    "best": (f"bestvideo{hdr_filter}+bestaudio/best", {}),
+                    "1080": (f"bestvideo[height<=1080]{hdr_filter}+bestaudio/best[height<=1080]", {}),
+                    "720": (f"bestvideo[height<=720]{hdr_filter}+bestaudio/best[height<=720]", {}),
+                    "480": (f"bestvideo[height<=480]{hdr_filter}+bestaudio/best[height<=480]", {})
+                }
+            else:
+                formats = {
+                    "audio": ("bestaudio/best", {"postprocessors": [{'key': 'FFmpegExtractAudio', 'preferredcodec': 'mp3'}]}),
+                    "best": ("bestvideo+bestaudio/best", {}),
+                    "1080": ("bestvideo[height<=1080]+bestaudio/best[height<=1080]", {}),
+                    "720": ("bestvideo[height<=720]+bestaudio/best[height<=720]", {}),
+                    "480": ("bestvideo[height<=480]+bestaudio/best[height<=480]", {})
+                }
             
             format_opt, extra_opts = formats.get(quality, ("best", {}))
             
@@ -132,7 +151,8 @@ class VideoDownloader:
                 **extra_opts
             }
                 
-            self.log_message(f"Starting download: {url} (Quality: {quality})")
+            hdr_status = "SDR (avoid HDR)" if avoid_hdr else "Best available (may include HDR)"
+            self.log_message(f"Starting download: {url} (Quality: {quality}, {hdr_status})")
             
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(url, download=False)
