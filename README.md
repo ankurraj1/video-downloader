@@ -13,21 +13,32 @@ A professional desktop application for downloading videos in the best quality us
 - ⚡ Professional Windows .exe installer
 
 ## 📍 Installation Location
-After installation: `C:\Program Files\VideoDownloader\VideoDownloader.exe`
+After installation:
+- **SimpleSetup:** `C:\Program Files\VideoDownloader\VideoDownloader.bat`
+- **ExeInstaller:** `C:\Program Files\VideoDownloader\VideoDownloader.exe`
 
 ## 🚀 Quick Installation
 
-### Windows (Recommended)
+### Windows - Choose Your Installer:
+
+#### Option 1: SimpleSetup.bat (Recommended for most users)
 1. Go to the `installers` folder
+2. Right-click **`SimpleSetup.bat`**
+3. Select **"Run as Administrator"**
+4. Creates: `C:\Program Files\VideoDownloader\VideoDownloader.bat`
+
+#### Option 2: ExeInstaller.bat (Professional .exe)
+1. Go to the `installers` folder  
 2. Right-click **`ExeInstaller.bat`**
 3. Select **"Run as Administrator"**
-4. Wait for the installer to:
-   - ✅ Check Python installation
-   - ✅ Download and bundle FFmpeg
-   - ✅ Build professional Windows .exe
-   - ✅ Create desktop and Start Menu shortcuts
+4. Creates: `C:\Program Files\VideoDownloader\VideoDownloader.exe`
 
-**Result:** Professional `VideoDownloader.exe` in Program Files!
+#### Option 3: Debug Mode (If installer fails)
+1. Right-click **`ExeInstaller_Debug.bat`**
+2. Select **"Run as Administrator"**
+3. Shows detailed progress to identify issues
+
+**All options create desktop shortcuts and Start Menu entries!**
 
 ### Linux Installation
 ```bash
@@ -60,11 +71,13 @@ python3 src/video_downloader.py
 ```
 video-downloader/
 ├── src/
-│   ├── video_downloader.py    # Main application
-│   └── requirements.txt       # Python dependencies
+│   ├── video_downloader.py     # Main application
+│   └── requirements.txt        # Python dependencies
 ├── installers/
-│   └── ExeInstaller.bat       # Windows installer
-└── README.md                  # This documentation
+│   ├── SimpleSetup.bat         # Simple installer (recommended)
+│   ├── ExeInstaller.bat        # Professional .exe builder
+│   └── ExeInstaller_Debug.bat  # Debug version
+└── README.md                   # This documentation
 ```
 
 ## 🔧 System Requirements

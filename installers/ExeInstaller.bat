@@ -53,21 +53,52 @@ if exist "%BUILD_DIR%" rd /s /q "%BUILD_DIR%"
 mkdir "%BUILD_DIR%"
 cd /d "%BUILD_DIR%"
 
+:: Check source files exist
+echo Checking for source files...
+set SRC_DIR=%SCRIPT_DIR%..\src
+if not exist "%SRC_DIR%\video_downloader.py" (
+    echo ERROR: video_downloader.py not found at: %SRC_DIR%
+    pause
+    exit /b 1
+)
+if not exist "%SRC_DIR%\requirements.txt" (
+    echo ERROR: requirements.txt not found at: %SRC_DIR%
+    pause
+    exit /b 1
+)
+
 :: Copy source files
 echo [3/7] Copying application files...
-copy "%SCRIPT_DIR%..\src\video_downloader.py" .
-copy "%SCRIPT_DIR%..\src\requirements.txt" .
+copy "%SRC_DIR%\video_downloader.py" . || (echo ERROR: Failed to copy video_downloader.py & pause & exit /b 1)
+copy "%SRC_DIR%\requirements.txt" . || (echo ERROR: Failed to copy requirements.txt & pause & exit /b 1)
 
 :: Create virtual environment and install dependencies
 echo [4/7] Installing dependencies...
 python -m venv build_env
-call build_env\Scripts\activate.bat
-python -m pip install --upgrade pip >nul 2>&1
-python -m pip install -r requirements.txt >nul 2>&1
-python -m pip install pyinstaller >nul 2>&1
-
 if %errorlevel% neq 0 (
-    echo ERROR: Failed to install dependencies
+    echo ERROR: Failed to create virtual environment
+    pause
+    exit /b 1
+)
+
+call build_env\Scripts\activate.bat
+if %errorlevel% neq 0 (
+    echo ERROR: Failed to activate virtual environment
+    pause
+    exit /b 1
+)
+
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+if %errorlevel% neq 0 (
+    echo ERROR: Failed to install requirements
+    pause
+    exit /b 1
+)
+
+python -m pip install pyinstaller
+if %errorlevel% neq 0 (
+    echo ERROR: Failed to install PyInstaller
     pause
     exit /b 1
 )
