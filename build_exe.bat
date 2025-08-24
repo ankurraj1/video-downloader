@@ -68,13 +68,17 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-if exist dist\VideoDownloader.exe (
+:: Check if the EXE was created (wait a moment for file system sync)
+timeout /t 2 /nobreak >nul 2>&1
+if exist "dist\VideoDownloader.exe" (
     echo.
     echo ================================================
     echo          Build Complete!
     echo ================================================
     echo.
     echo Standalone EXE created: dist\VideoDownloader.exe
+    echo File size: 
+    dir dist\VideoDownloader.exe | find ".exe"
     echo.
     echo The app is now ready to use:
     echo • Copy VideoDownloader.exe anywhere
@@ -88,7 +92,12 @@ if exist dist\VideoDownloader.exe (
     echo ✓ Completely portable
     echo.
 ) else (
-    echo ERROR: VideoDownloader.exe not created
+    echo ERROR: VideoDownloader.exe not found in dist folder
+    echo.
+    echo Checking current directory contents:
+    dir dist 2>nul || echo dist folder not found
+    echo.
+    echo If PyInstaller completed successfully above, check the dist folder manually.
     pause
     exit /b 1
 )
