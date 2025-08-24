@@ -51,6 +51,14 @@ echo.
 echo [4/4] Building EXE...
 echo This may take a few minutes...
 
+:: Clean up old build files to prevent permission errors
+echo Cleaning old build files...
+taskkill /F /IM VideoDownloader.exe >nul 2>&1
+timeout /t 1 /nobreak >nul 2>&1
+if exist dist\VideoDownloader.exe del /F /Q dist\VideoDownloader.exe >nul 2>&1
+if exist build rmdir /S /Q build >nul 2>&1
+if exist VideoDownloader.spec del /F /Q VideoDownloader.spec >nul 2>&1
+
 echo Building EXE...
 python -m PyInstaller --onefile --windowed --name VideoDownloader --icon=NONE src\video_downloader.py
 
