@@ -28,32 +28,31 @@ echo Installing pyinstaller...
 python -m pip install pyinstaller >nul 2>&1
 echo ✓ Packages installed
 
-:: Download FFmpeg
+:: Install FFmpeg
 echo.
-echo [3/4] Getting FFmpeg...
-if not exist ffmpeg mkdir ffmpeg
-cd ffmpeg
-
-if not exist ffmpeg.exe (
-    echo Downloading FFmpeg...
-    powershell -Command "[Net.ServicePointManager]::SecurityProtocol = 'Tls12'; try { Invoke-WebRequest 'https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip' -OutFile 'temp.zip' -UseBasicParsing -TimeoutSec 60; Expand-Archive 'temp.zip' 'temp' -Force; Get-ChildItem 'temp\ffmpeg-*\bin\ffmpeg.exe' | Copy-Item -Destination '.'; Get-ChildItem 'temp\ffmpeg-*\bin\ffprobe.exe' | Copy-Item -Destination '.' -ErrorAction SilentlyContinue; Remove-Item 'temp' -Recurse -Force; Remove-Item 'temp.zip' -Force; Write-Host 'FFmpeg ready' } catch { Write-Host 'FFmpeg download failed - continuing without it' }"
+echo [3/4] Installing FFmpeg...
+echo Checking if FFmpeg is installed...
+ffmpeg -version >nul 2>&1
+if %errorlevel% equ 0 (
+    echo ✓ FFmpeg already installed
 ) else (
-    echo ✓ FFmpeg already exists
+    echo Installing FFmpeg via winget...
+    winget install Gyan.FFmpeg --silent --accept-package-agreements --accept-source-agreements >nul 2>&1
+    if %errorlevel% equ 0 (
+        echo ✓ FFmpeg installed successfully
+        echo Note: You may need to restart your terminal for PATH updates
+    ) else (
+        echo WARNING: FFmpeg installation failed - app will work with limited quality options
+    )
 )
-cd ..
 
 :: Build the EXE
 echo.
 echo [4/4] Building EXE...
 echo This may take a few minutes...
 
-if exist ffmpeg\ffmpeg.exe (
-    echo Building with FFmpeg...
-    python -m PyInstaller --onefile --windowed --name VideoDownloader --add-data "ffmpeg;ffmpeg" --icon=NONE src\video_downloader.py
-) else (
-    echo Building without FFmpeg...
-    python -m PyInstaller --onefile --windowed --name VideoDownloader --icon=NONE src\video_downloader.py
-)
+echo Building EXE...
+python -m PyInstaller --onefile --windowed --name VideoDownloader --icon=NONE src\video_downloader.py
 
 if %errorlevel% neq 0 (
     echo ERROR: Build failed
@@ -77,7 +76,7 @@ if exist dist\VideoDownloader.exe (
     echo Features:
     echo ✓ Download videos in best quality
     echo ✓ Audio-only downloads as MP3
-    if exist ffmpeg\ffmpeg.exe echo ✓ FFmpeg bundled for quality merging
+    echo ✓ FFmpeg integration (if installed)
     echo ✓ Completely portable
     echo.
 ) else (
