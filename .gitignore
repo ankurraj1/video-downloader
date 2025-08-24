@@ -41,3 +41,6 @@ downloads/
 build/
 dist/
 *.spec
+
+# FFmpeg downloads
+ffmpeg/

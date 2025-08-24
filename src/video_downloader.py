@@ -14,24 +14,17 @@ class VideoDownloader:
         self.download_path = str(Path.home() / "Downloads")
         self.setup_ui()
         
-    def create_labeled_widget(self, parent, label_text, widget_class, row, **widget_kwargs):
-        """Helper to create label-widget pairs"""
-        ttk.Label(parent, text=label_text, font=('Arial', 10)).grid(
-            row=row, column=0, sticky=tk.W, pady=5)
-        widget = widget_class(parent, **widget_kwargs)
-        return widget
-        
     def setup_ui(self):
         main_frame = ttk.Frame(self.root, padding="10")
         main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
         
         # URL input
-        self.url_entry = self.create_labeled_widget(
-            main_frame, "Video URL:", ttk.Entry, 0, width=50)
+        ttk.Label(main_frame, text="Video URL:", font=('Arial', 10)).grid(row=0, column=0, sticky=tk.W, pady=5)
+        self.url_entry = ttk.Entry(main_frame, width=50)
         self.url_entry.grid(row=1, column=0, columnspan=2, pady=5, sticky=(tk.W, tk.E))
         
         # Download path
-        self.create_labeled_widget(main_frame, "Download Path:", ttk.Label, 2)
+        ttk.Label(main_frame, text="Download Path:", font=('Arial', 10)).grid(row=2, column=0, sticky=tk.W, pady=5)
         path_frame = ttk.Frame(main_frame)
         path_frame.grid(row=3, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=5)
         
@@ -40,13 +33,12 @@ class VideoDownloader:
         ttk.Button(path_frame, text="Browse", command=self.select_folder).pack(side=tk.RIGHT, padx=(5, 0))
         
         # Quality selection
-        self.create_labeled_widget(main_frame, "Quality:", ttk.Label, 4)
+        ttk.Label(main_frame, text="Quality:", font=('Arial', 10)).grid(row=4, column=0, sticky=tk.W, pady=5)
         self.quality_var = tk.StringVar(value="best")
         quality_frame = ttk.Frame(main_frame)
         quality_frame.grid(row=5, column=0, columnspan=2, sticky=tk.W, pady=5)
         
-        qualities = [("Best", "best"), ("720p", "720"), ("480p", "480"), ("Audio Only", "audio")]
-        for text, value in qualities:
+        for text, value in [("Best", "best"), ("720p", "720"), ("480p", "480"), ("Audio Only", "audio")]:
             ttk.Radiobutton(quality_frame, text=text, variable=self.quality_var, value=value).pack(side=tk.LEFT, padx=5)
         
         # Buttons
@@ -57,7 +49,7 @@ class VideoDownloader:
         ttk.Button(button_frame, text="Clear", command=self.clear_fields).pack(side=tk.LEFT, padx=5)
         
         # Progress
-        self.create_labeled_widget(main_frame, "Progress:", ttk.Label, 7)
+        ttk.Label(main_frame, text="Progress:", font=('Arial', 10)).grid(row=7, column=0, sticky=tk.W, pady=5)
         self.progress_var = tk.DoubleVar()
         self.progress_bar = ttk.Progressbar(main_frame, variable=self.progress_var, maximum=100)
         self.progress_bar.grid(row=8, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=5)
@@ -90,20 +82,23 @@ class VideoDownloader:
         self.status_label.config(text="Ready to download", foreground="green")
         
     def log_message(self, message):
-        self.log_text.insert(tk.END, message + "\n")
+        self.log_text.insert(tk.END, f"{message}\n")
         self.log_text.see(tk.END)
         
     def progress_hook(self, d):
-        if d['status'] == 'downloading':
+        status = d.get('status')
+        
+        if status == 'downloading':
             total = d.get('total_bytes') or d.get('total_bytes_estimate', 1)
-            percent = (d['downloaded_bytes'] * 100.0 / total) if total else 0
+            downloaded = d.get('downloaded_bytes', 0)
+            percent = (downloaded * 100.0 / total) if total else 0
             self.progress_var.set(percent)
             
             if speed := d.get('speed'):
-                speed_mb = speed / 1048576  # Bytes to MB
-                self.status_label.config(text=f"Downloading... {percent:.1f}% ({speed_mb:.2f} MB/s)")
+                speed_mb = speed / (1024 * 1024)
+                self.status_label.config(text=f"Downloading... {percent:.1f}% ({speed_mb:.1f} MB/s)")
                 
-        elif d['status'] == 'finished':
+        elif status == 'finished':
             self.progress_var.set(100)
             self.status_label.config(text="Download completed!", foreground="green")
             self.log_message("Download finished, processing...")
@@ -117,15 +112,15 @@ class VideoDownloader:
         try:
             quality = self.quality_var.get()
             
-            # Quality to format mapping
-            format_map = {
+            # Format mapping
+            formats = {
                 "audio": ("bestaudio/best", {"postprocessors": [{'key': 'FFmpegExtractAudio', 'preferredcodec': 'mp3'}]}),
                 "best": ("bestvideo+bestaudio/best", {}),
                 "720": ("bestvideo[height<=720]+bestaudio/best[height<=720]", {}),
                 "480": ("bestvideo[height<=480]+bestaudio/best[height<=480]", {})
             }
             
-            format_opt, extra_opts = format_map[quality]
+            format_opt, extra_opts = formats.get(quality, ("best", {}))
             
             ydl_opts = {
                 'format': format_opt,
@@ -140,7 +135,8 @@ class VideoDownloader:
             
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(url, download=False)
-                self.log_message(f"Title: {info.get('title', 'Unknown')}")
+                title = info.get('title', 'Unknown')
+                self.log_message(f"Title: {title}")
                 ydl.download([url])
                 
             self.log_message("Download completed successfully!")
