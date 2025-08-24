@@ -70,10 +70,47 @@ class VideoDownloader:
         scrollbar.grid(row=10, column=2, sticky=(tk.N, tk.S), pady=10)
         self.log_text.configure(yscrollcommand=scrollbar.set)
         
+        # Add right-click context menus
+        self.setup_context_menus()
+        
         # Configure grid weights
         main_frame.columnconfigure(0, weight=1)
         self.root.columnconfigure(0, weight=1)
         self.root.rowconfigure(0, weight=1)
+        
+    def setup_context_menus(self):
+        """Setup right-click context menus for URL entry and log text"""
+        # Context menu for URL entry
+        self.url_menu = tk.Menu(self.root, tearoff=0)
+        self.url_menu.add_command(label="Cut", command=lambda: self.url_entry.event_generate("<<Cut>>"))
+        self.url_menu.add_command(label="Copy", command=lambda: self.url_entry.event_generate("<<Copy>>"))
+        self.url_menu.add_command(label="Paste", command=lambda: self.url_entry.event_generate("<<Paste>>"))
+        self.url_menu.add_separator()
+        self.url_menu.add_command(label="Select All", command=lambda: self.url_entry.select_range(0, tk.END))
+        
+        # Context menu for log text
+        self.log_menu = tk.Menu(self.root, tearoff=0)
+        self.log_menu.add_command(label="Copy", command=lambda: self.log_text.event_generate("<<Copy>>"))
+        self.log_menu.add_separator()
+        self.log_menu.add_command(label="Select All", command=lambda: self.log_text.tag_add(tk.SEL, "1.0", tk.END))
+        
+        # Bind right-click events
+        self.url_entry.bind("<Button-3>", self.show_url_context_menu)
+        self.log_text.bind("<Button-3>", self.show_log_context_menu)
+        
+    def show_url_context_menu(self, event):
+        """Show context menu for URL entry"""
+        try:
+            self.url_menu.tk_popup(event.x_root, event.y_root)
+        finally:
+            self.url_menu.grab_release()
+            
+    def show_log_context_menu(self, event):
+        """Show context menu for log text"""
+        try:
+            self.log_menu.tk_popup(event.x_root, event.y_root)
+        finally:
+            self.log_menu.grab_release()
         
     def select_folder(self):
         folder = filedialog.askdirectory(initialdir=self.download_path)
