@@ -142,9 +142,18 @@ class VideoDownloader:
             
             format_opt, extra_opts = formats.get(quality, ("best", {}))
             
+            # Create quality suffix for filename
+            quality_suffix = {
+                "best": "_best",
+                "1080": "_1080p",
+                "720": "_720p", 
+                "480": "_480p",
+                "audio": "_audio"
+            }.get(quality, f"_{quality}")
+            
             ydl_opts = {
                 'format': format_opt,
-                'outtmpl': os.path.join(self.download_path, '%(title)s.%(ext)s'),
+                'outtmpl': os.path.join(self.download_path, f'%(title)s{quality_suffix}.%(ext)s'),
                 'progress_hooks': [self.progress_hook],
                 'quiet': True,
                 'no_warnings': True,
