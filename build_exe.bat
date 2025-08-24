@@ -23,9 +23,9 @@ echo ✓ Python found
 echo.
 echo [2/4] Installing packages...
 echo Installing yt-dlp...
-python -m pip install --user yt-dlp>=2024.1.0 >nul 2>&1
+python -m pip install yt-dlp>=2024.1.0 >nul 2>&1
 echo Installing pyinstaller...
-python -m pip install --user pyinstaller >nul 2>&1
+python -m pip install pyinstaller >nul 2>&1
 echo ✓ Packages installed
 
 :: Download FFmpeg
@@ -49,10 +49,10 @@ echo This may take a few minutes...
 
 if exist ffmpeg\ffmpeg.exe (
     echo Building with FFmpeg...
-    pyinstaller --onefile --windowed --name VideoDownloader --add-data "ffmpeg;ffmpeg" --icon=NONE src\video_downloader.py
+    python -m PyInstaller --onefile --windowed --name VideoDownloader --add-data "ffmpeg;ffmpeg" --icon=NONE src\video_downloader.py
 ) else (
     echo Building without FFmpeg...
-    pyinstaller --onefile --windowed --name VideoDownloader --icon=NONE src\video_downloader.py
+    python -m PyInstaller --onefile --windowed --name VideoDownloader --icon=NONE src\video_downloader.py
 )
 
 if %errorlevel% neq 0 (
